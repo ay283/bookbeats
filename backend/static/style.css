@@ -1,3 +1,16 @@
+* {
+    font-family:'Courier New', Courier, monospace;
+    color: white;
+    background-color: black;
+}
+
+body {
+    align-items: center;
+}
+.logo img {
+    width: 600px;
+    height: 100%;
+}
 .full-body-container{
     position: absolute;
     top:0;
@@ -10,6 +23,8 @@
     justify-content: start;
     align-items: center;
     flex-direction: column;
+    background-color: black;
+    color: white;
 }
 
 #google-c{
@@ -56,6 +71,8 @@
     margin-top: 10px;
     padding:12px;
     width: 600px;
+    flex-direction: column;
+    text-align: left;
 }
 
 .input-box img{
@@ -69,23 +86,45 @@
     align-items: center;
 }
 
+.input-box label {
+    text-align: left;
+    margin-left: 0;
+    margin-right: auto;
+    margin-bottom: 0.5em;
+}
 .input-box input{
     width: 100%;
     margin-left: 10px;
     font-size: 16px;
     border: none;
     outline: 0;
+    color: black;
+    padding: 0.5em;
+    padding-left: 1em;
+    padding-right: 1em;
+    border-radius: 25px;
+    background-color: white;
 }
 
 #answer-box{
-    width: 700px;
+    width: 600px;
     margin-top:50px; 
 }
 
-.episode-title{
-    font-family: 'Kanit', sans-serif;
+.top-text {
+    margin-top: 100px;
 }
 
-.episode-desc{
-    font-family: 'Montserrat', sans-serif;
+.search {
+    align-items:end;
+    margin-right: 0;
+    margin-left: auto;
+}
+.search button {
+    background-color: #322D40;
+    border: none;
+    border-radius: 25px;
+    padding: 0.5em;
+    padding-left: 1em;
+    padding-right: 1em;
 }
