@@ -4,6 +4,8 @@ from flask import Flask, render_template, request
 from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
 import pandas as pd
+from numpy import dot
+from numpy.linalg import norm
 
 # ROOT_PATH for linking with all your files. 
 # Feel free to use a config.py or settings.py with a global export variable
@@ -44,3 +46,9 @@ def episodes_search():
 
 if 'DB_NAME' not in os.environ:
     app.run(debug=True,host="0.0.0.0",port=5000)
+
+def cossim(a, b):
+    ans = dot(a, b) / (norm(a) * norm(b))
+    if not ans or pd.isna(ans):
+        return 0
+    return ans
