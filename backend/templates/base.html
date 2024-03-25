@@ -76,11 +76,8 @@
         .then(data => {
             data.top_ten_songs.forEach(song => {
                 // Access title and text using appropriate keys
-                let title = song.title;
-                let text = song.text;
-
                 let tempDiv = document.createElement("div");
-                tempDiv.innerHTML = answerBoxTemplate(song);
+                tempDiv.innerHTML = answerBoxTemplate(song, song);
                 document.getElementById("answer-box").appendChild(tempDiv);
             });
         })
