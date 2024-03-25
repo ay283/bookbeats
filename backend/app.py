@@ -83,10 +83,10 @@ def tokenize_book(query):
     return res
 
 #Tokenize the title and text of a song by row id given
-def tokenize_song_by_i(i):
-    title_str = spotify_df['title'].iloc[i]
+def tokenize_song_by_i(i, filtered_spotify):
+    title_str = filtered_spotify['title'].iloc[i]
     title_tok = re.findall(r'\w+\'?\w*', title_str)
-    text_str = spotify_df['text'].iloc[i]
+    text_str = filtered_spotify['text'].iloc[i]
     text_tok = re.findall(r'\w+\'?\w*', text_str)
     res = title_tok + text_tok
     return res
@@ -99,12 +99,18 @@ def song_filter(query):
     rel_song_genre_set = set()
     for key, s_gen in book_to_song_genres.items():
         for genre in our_genres:
-            if key == genre:
-                rel_song_genre_set.union(set(s_gen))
+            for genre1 in genre:
+                print(key, 'key',genre1, 'genre')
+                if key == genre1:
+                    print("equal keys", key, genre1)
+                    rel_song_genre_set.update(s_gen)
     if (len(rel_song_genre_set)==0):
+        print("HERE")
         return spotify_df
     rel_song_genre_list = list(rel_song_genre_set)
-    filtered_df = spotify_df[spotify_df['tagstokenized'].apply(lambda x: all(query in x for query in rel_song_genre_list))]
+    print(rel_song_genre_list)
+    filtered_df = spotify_df[spotify_df['tagstokenized'].apply(lambda x: any(genre in x for genre in rel_song_genre_list))]
+    #print(filtered_df.shape[0])
     return filtered_df
 
 @app.route("/")
@@ -122,12 +128,14 @@ def episodes_search():
   #  print(book_vector)
     #Initialize ranking dictionary of cossine similarities
     cos_sim_ranking = {}
-    song_count = spotify_df.shape[0]
-    print(song_count)
+    #Filter our spotify_df as needed:
+    filtered_spotify = song_filter(text)
+    song_count = filtered_spotify.shape[0]
+    print(song_count, "size of filtered")
     #Have to get the cossine sim between each song and book, put in map, and then sort the map
     for i in range(song_count):
         #Get tokenized title and text for song i
-        tokenized_song = tokenize_song_by_i(i)
+        tokenized_song = tokenize_song_by_i(i, filtered_spotify)
         #Convert our song to a vector to call cossim on 
         song_vector = build_vector(tokenized_song, tokenize_req_book)
        # print(song_vector)
