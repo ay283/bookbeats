@@ -37,6 +37,35 @@ app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 CORS(app)
 
+#Manual mapping of book genres to song genres (First prototype only)
+book_to_song_genres = {'Nonfiction': ['folk', ' indie'], 'Fiction': [' indie', ' pop', 'pop'],
+'Fantasy': [' pop', 'electronic', 'pop', ' indie'], 'Romance': [' pop', ' 90s'], 'Historical': [' classic rock', ' blues'],
+'History': [' classic rock', ' blues'], 'Childrens': [' pop',  'pop'], 'Cultural': [' 90s', ' 70s'], 
+'Sequential Art': ['electronic', 'rock', ' indie'], 'Mystery': ['jazz'], 'Religion': [' indie', 'folk'], 
+'Science': ['electronic', 'rock'], 'Science Fiction': [' pop', ' indie rock', 'electronic'], 
+'Paranormal': [' classic rock', 'gothic metal', 'hard rock']}
+
+#Get most popular song genres and most popular book genres in our datasets (helping to map genres)
+def popular_genres():
+    #Unionize the songs
+    song_genres_count = {}
+    for genre_list in spotify_df['tagstokenized']:
+        for genre in genre_list:
+            old_count = song_genres_count.get(genre, 0)
+            song_genres_count[genre] = old_count+1
+    book_genres_count = {}
+    for genre_list in book_df['genretokenized']:
+        for genre in genre_list:
+            old_count = book_genres_count.get(genre, 0)
+            book_genres_count[genre] = old_count+1
+    sorted_song_genre_count = (sorted(song_genres_count.items(), key=lambda x: x[1], reverse= True))
+    sorted_book_genres_count = (sorted(book_genres_count.items(), key=lambda x: x[1], reverse= True))
+    for pair in sorted_book_genres_count[:20]:
+            print(pair)
+    for pair in sorted_song_genre_count[:20]:
+            print(pair)
+    
+#Filter songs by genre (if filtered is empty, just return all songs)
 
 #Tokenize the title and description of a book based on query title given
 
@@ -62,6 +91,22 @@ def tokenize_song_by_i(i):
     res = title_tok + text_tok
     return res
 
+#Filtering spotify data based on book genre
+#query = book of interest
+def song_filter(query):
+    book = book_df[(book_df['title'] == query)]
+    our_genres = book['genretokenized']
+    rel_song_genre_set = set()
+    for key, s_gen in book_to_song_genres.items():
+        for genre in our_genres:
+            if key == genre:
+                rel_song_genre_set.union(set(s_gen))
+    if (len(rel_song_genre_set)==0):
+        return spotify_df
+    rel_song_genre_list = list(rel_song_genre_set)
+    filtered_df = spotify_df[spotify_df['tagstokenized'].apply(lambda x: all(query in x for query in rel_song_genre_list))]
+    return filtered_df
+
 @app.route("/")
 def home():
     return render_template('base.html',title="sample html")
@@ -69,6 +114,7 @@ def home():
 #Route to return top ten similar songs to a book (based on cossine similarity)
 @app.route("/songs", methods = ['GET'])
 def episodes_search():
+    #popular_genres()
     text = request.args.get("title")
     #Tokenize title and desc of requested book 
     tokenize_req_book = tokenize_book(text)
@@ -76,7 +122,8 @@ def episodes_search():
   #  print(book_vector)
     #Initialize ranking dictionary of cossine similarities
     cos_sim_ranking = {}
-    song_count = len(spotify_df['title'])
+    song_count = spotify_df.shape[0]
+    print(song_count)
     #Have to get the cossine sim between each song and book, put in map, and then sort the map
     for i in range(song_count):
         #Get tokenized title and text for song i
@@ -95,10 +142,10 @@ def episodes_search():
     for i in range(10):
         #Get title
         id = sorted_cos_sim[i][0]
-        song = spotify_df.iloc[id].to_json()
+        song = spotify_df.iloc[id].title
         #Add to response_json
         response_json["top_ten_songs"].append(song)
-        #print(song)
+        print(song)
     return json.dumps(response_json), 200
 
 #Builds Frequency Vector 
