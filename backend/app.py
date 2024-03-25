@@ -95,10 +95,10 @@ def episodes_search():
     for i in range(10):
         #Get title
         id = sorted_cos_sim[i][0]
-        title = spotify_df['title'].iloc[id]  
+        song = spotify_df.iloc[id].to_json()
         #Add to response_json
-        response_json["top_ten_songs"].append(title)
-        #print(title)
+        response_json["top_ten_songs"].append(song)
+        #print(song)
     return json.dumps(response_json), 200
 
 #Builds Frequency Vector 
