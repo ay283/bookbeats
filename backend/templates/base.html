@@ -17,10 +17,10 @@
                 <label for="book-search">Find Your Book</label>
                 <!-- <img src="{{ url_for('static', filename='images/mag.png') }}" /> -->
                 <input name='book-search' placeholder="Search for a book title (eg: 'The Great Gatsby')"
-                    id="filter-text-val" onkeyup="filterText()">
+                    id="filter-text-val">
             </div>
             <div class="search">
-                <button>Give me a playlist</button>
+                <button button onclick="filterText()">Give me a playlist</button>
             </div>
         </div>
         <div id="answer-box">
