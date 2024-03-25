@@ -3,7 +3,7 @@ env/
 Docker/__pycache__
 
 venv/
-
+test.py
 *.pyc
 __pycache__/
 
