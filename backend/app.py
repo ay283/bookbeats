@@ -34,6 +34,7 @@ with open(spotify_file_path, 'r') as file:
     spotify_df = pd.DataFrame(spotify_data)
 
 app = Flask(__name__)
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 CORS(app)
 
 
@@ -72,6 +73,7 @@ def episodes_search():
     #Tokenize title and desc of requested book 
     tokenize_req_book = tokenize_book(text)
     book_vector = build_vector(tokenize_req_book, tokenize_req_book)
+  #  print(book_vector)
     #Initialize ranking dictionary of cossine similarities
     cos_sim_ranking = {}
     song_count = len(spotify_df['title'])
@@ -81,11 +83,13 @@ def episodes_search():
         tokenized_song = tokenize_song_by_i(i)
         #Convert our song to a vector to call cossim on 
         song_vector = build_vector(tokenized_song, tokenize_req_book)
+       # print(song_vector)
         cossim_measure = cossim(book_vector, song_vector)
+        #print(cossim_measure)
         cos_sim_ranking[i] = cossim_measure
 
     #Sort our cos_sim_ranking by cos_sim (greatest to least)
-    sorted_cos_sim = (sorted(cos_sim_ranking.items(), key=lambda x: x[1]))
+    sorted_cos_sim = (sorted(cos_sim_ranking.items(), key=lambda x: x[1], reverse= True))
     response_json = {}
     response_json["top_ten_songs"] = []
     for i in range(10):
@@ -94,6 +98,7 @@ def episodes_search():
         title = spotify_df['title'].iloc[id]  
         #Add to response_json
         response_json["top_ten_songs"].append(title)
+        print(title)
 
     return response_json
 
@@ -116,7 +121,7 @@ def build_vector(doc, query_words):
 
 def cossim(a, b):
     ans = dot(a, b) / (norm(a) * norm(b))
-    if not ans or np.isnan(ans):
+    if not ans or np.isnan(ans) or norm(a) == 0 or norm(b) ==0 :
         return 0
     return ans
 
