@@ -85,7 +85,7 @@ def episodes_search():
         song_vector = build_vector(tokenized_song, tokenize_req_book)
        # print(song_vector)
         cossim_measure = cossim(book_vector, song_vector)
-        #print(cossim_measure)
+       # print(cossim_measure)
         cos_sim_ranking[i] = cossim_measure
 
     #Sort our cos_sim_ranking by cos_sim (greatest to least)
@@ -98,8 +98,7 @@ def episodes_search():
         title = spotify_df['title'].iloc[id]  
         #Add to response_json
         response_json["top_ten_songs"].append(title)
-        print(title)
-
+        #print(title)
     return response_json
 
 #Builds Frequency Vector 
@@ -120,9 +119,10 @@ def build_vector(doc, query_words):
     return frequency_vector
 
 def cossim(a, b):
-    ans = dot(a, b) / (norm(a) * norm(b))
-    if not ans or np.isnan(ans) or norm(a) == 0 or norm(b) ==0 :
+  #  print(a,b)
+    if np.isnan(norm(b)) or np.isnan(norm(a)) or norm(a) == 0 or norm(b) ==0 or not a or not b:
         return 0
+    ans = dot(a, b) / (norm(a) * norm(b))
     return ans
 
 if 'DB_NAME' not in os.environ:
