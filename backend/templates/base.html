@@ -80,7 +80,7 @@
                 let text = song.text;
 
                 let tempDiv = document.createElement("div");
-                tempDiv.innerHTML = answerBoxTemplate(title, text);
+                tempDiv.innerHTML = answerBoxTemplate(song);
                 document.getElementById("answer-box").appendChild(tempDiv);
             });
         })
