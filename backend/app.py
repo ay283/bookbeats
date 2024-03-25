@@ -3,7 +3,7 @@ import os
 import re
 from flask import Flask, render_template, request
 from flask_cors import CORS
-from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
+# from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
 from sklearn.feature_extraction.text import CountVectorizer
 import pandas as pd
 import numpy as np

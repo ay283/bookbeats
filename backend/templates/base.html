@@ -26,32 +26,68 @@
     </div>
 
     <script>
-
-        function answerBoxTemplate(title,titleDesc,rating){
+        function answerBoxTemplate(title, text) {
             return `<div class=''>
-                <h3 class='episode-title'>${title}</h3>
-                <p class='episode-desc'>${titleDesc}</p>
-                <p class='episode-rating'>IMDB Rating: ${rating}</p>
-            </div>`
+                <h3 class='song-title'>${title}</h3>
+                <p class='song-text'>${text}</p>
+            </div>`;
         }
 
         function sendFocus(){
             document.getElementById('filter-text-val').focus()
         }
 
-        function filterText(){
-            document.getElementById("answer-box").innerHTML = ""
-            console.log(document.getElementById("filter-text-val").value)
-            fetch("/episodes?" + new URLSearchParams({ title: document.getElementById("filter-text-val").value }).toString())
-            .then((response) => response.json())
-            .then((data) => data.forEach(row => {
+        // function filterText(){
+        //     document.getElementById("answer-box").innerHTML = ""
+        //     console.log(document.getElementById("filter-text-val").value)
+        //     fetch("/songs?title=" + new URLSearchParams({ title: document.getElementById("filter-text-val").value }).toString())
+        //     .then((response) => response.json())
+        //     .then((data) => data.forEach(row => {
                 
-                let tempDiv = document.createElement("div")
-                tempDiv.innerHTML = answerBoxTemplate(row.title,row.descr,row.imdb_rating)
-                document.getElementById("answer-box").appendChild(tempDiv)
-            }));
+        //         let tempDiv = document.createElement("div")
+        //         tempDiv.innerHTML = answerBoxTemplate(row.title,row.descr,row.imdb_rating)
+        //         document.getElementById("answer-box").appendChild(tempDiv)
+        //     }));
 
-        }
-            
-    </script>
+        // }
+    
+    //     function filterText() {
+    //     document.getElementById("answer-box").innerHTML = "";
+    //     const title = document.getElementById("filter-text-val").value;
+    //     fetch("/songs?title=" + title)
+    //         .then(response => response.json())
+    //         .then(data => {
+    //             data.top_ten_songs.forEach(song => {
+    //                 let tempDiv = document.createElement("div");
+    //                 tempDiv.innerHTML = answerBoxTemplate(song.title, song.text);
+    //                 document.getElementById("answer-box").appendChild(tempDiv);
+    //             });
+    //         })
+    //         .catch(error => {
+    //             console.error('Error:', error);
+    //         });
+    // }
+
+    function filterText() {
+    document.getElementById("answer-box").innerHTML = "";
+    const title = document.getElementById("filter-text-val").value;
+    fetch("/songs?title=" + title)
+        .then(response => response.json())
+        .then(data => {
+            data.top_ten_songs.forEach(song => {
+                // Access title and text using appropriate keys
+                let title = song.title;
+                let text = song.text;
+
+                let tempDiv = document.createElement("div");
+                tempDiv.innerHTML = answerBoxTemplate(title, text);
+                document.getElementById("answer-box").appendChild(tempDiv);
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+}
+
+</script>
 </body>
