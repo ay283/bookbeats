@@ -99,7 +99,7 @@ def episodes_search():
         #Add to response_json
         response_json["top_ten_songs"].append(title)
         #print(title)
-    return response_json
+    return json.dumps(response_json), 200
 
 #Builds Frequency Vector 
 
