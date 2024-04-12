@@ -150,7 +150,7 @@ def episodes_search():
     for i in range(10):
         #Get title
         id = sorted_cos_sim[i][0]
-        song = spotify_df.iloc[id].title
+        song = filtered_spotify.iloc[id].title
         #Add to response_json
         response_json["top_ten_songs"].append(song)
         print(song)
