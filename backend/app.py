@@ -51,28 +51,8 @@ def closest_projects(project_index_in, project_repr_in, documents, k = 10):
     sims = project_repr_in.dot(project_repr_in[project_index_in,:])
     asort = np.argsort(-sims)[:k+1]
     return [(documents[i][0], documents[i][1],sims[i]) for i in asort[1:]]
-
-#Get most popular song genres and most popular book genres in our datasets (helping to map genres)
-def popular_genres():
-    #Unionize the songs
-    song_genres_count = {}
-    for genre_list in spotify_df['tagstokenized']:
-        for genre in genre_list:
-            old_count = song_genres_count.get(genre, 0)
-            song_genres_count[genre] = old_count+1
-    book_genres_count = {}
-    for genre_list in book_df['genretokenized']:
-        for genre in genre_list:
-            old_count = book_genres_count.get(genre, 0)
-            book_genres_count[genre] = old_count+1
-    sorted_song_genre_count = (sorted(song_genres_count.items(), key=lambda x: x[1], reverse= True))
-    sorted_book_genres_count = (sorted(book_genres_count.items(), key=lambda x: x[1], reverse= True))
-    for pair in sorted_book_genres_count[:20]:
-            print(pair)
-    for pair in sorted_song_genre_count[:20]:
-            print(pair)
     
-#FOR TESTING PURPOSES: 
+#FOR TESTING PURPOSES!: 
 # cosine similarity
 def closest_words(word_in, words_representation_in, k = 10):
     if word_in not in word_to_index: return "Not in vocab."
@@ -80,7 +60,7 @@ def closest_words(word_in, words_representation_in, k = 10):
     asort = np.argsort(-sims)[:k+1]
     return [(index_to_word[i],sims[i]) for i in asort[1:]] 
 
-#Creating the TD Matrix of query and filtered df
+#Performing SVD CALCULATION on filtered_spotify dataframe + our query!! 
 #Return the docs_compressed matrix and docs to perform cossine sim on later!
 def svd_calculation(query, filtered_df):
     #Terms = Query terms OR terms = all terms of filtered_df 
@@ -106,33 +86,11 @@ def svd_calculation(query, filtered_df):
     process.append(query)
     vectorizer = CountVectorizer()
     td_matrix = vectorizer.fit_transform(process)
+    td_matrix=td_matrix.astype('float64')
     docs_compressed, s, words_compressed= svds(td_matrix, k=100)
     docs_compressed_normed = normalize(docs_compressed)
     
     return docs_compressed_normed, documents
-
-#Tokenize the title and description of a book based on query title given
-def tokenize_book(query):
-    filtered_df = book_df[(book_df['title'] == query)]
-    #tokenize title
-    if filtered_df.empty:
-        print("Book does not exist in our database", query)
-        return []
-    title_str = filtered_df['title'].iloc[0]
-    title_tok = re.findall(r'\w+\'?\w*', title_str)
-    desc_str = filtered_df['desc'].iloc[0]
-    desc_tok = re.findall(r'\w+\'?\w*', desc_str)
-    res = title_tok + desc_tok
-    return res
-
-#Tokenize the title and text of a song by row id given
-def tokenize_song_by_i(i, filtered_spotify):
-    title_str = filtered_spotify['title'].iloc[i]
-    title_tok = re.findall(r'\w+\'?\w*', title_str)
-    text_str = filtered_spotify['text'].iloc[i]
-    text_tok = re.findall(r'\w+\'?\w*', text_str)
-    res = title_tok + text_tok
-    return res
 
 #Filtering spotify data based on book genre
 #query = book of interest
@@ -143,12 +101,12 @@ def song_filter(query):
     for key, s_gen in book_to_song_genres.items():
         for genre in our_genres:
             for genre1 in genre:
-                print(key, 'key',genre1, 'genre')
+                #print(key, 'key',genre1, 'genre')
                 if key == genre1:
-                    print("equal keys", key, genre1)
+                    #print("equal keys", key, genre1)
                     rel_song_genre_set.update(s_gen)
     if (len(rel_song_genre_set)==0):
-        print("HERE")
+        #print("HERE")
         return spotify_df
     rel_song_genre_list = list(rel_song_genre_set)
     print(rel_song_genre_list)
@@ -172,14 +130,79 @@ def episodes_search():
     print(song_count, "size of filtered")
 
     #Perform SVD on Filtered DF 
-    docs_compressed_norm, documents = svd_calculation(text,filtered_spotify)
-
+    desc = return_desc(text)
+    print(desc)
+    docs_compressed_norm, documents = svd_calculation(desc,filtered_spotify)
+    print(docs_compressed_norm[song_count])
     #Provides top ten cossine sim 
     top_ten_songs = closest_projects(song_count, docs_compressed_norm, documents) #Returns tuple list 
     
     #Response json
-
+    response_json = {}
+    response_json["top_ten_songs"] = []  
+    for title, artist, sim in top_ten_songs:
+        mapping = {"title": title, "artist": artist}
+        response_json["top_ten_songs"].append(title)
+        print(title, sim)
     return json.dumps(response_json), 200
+
+
+#____________________EXTRA FUNCTIONS FROM P03 (MAY OR MAY NOT USE LATER)______________________________________________#
+
+#Get most popular song genres and most popular book genres in our datasets (helping to map genres)
+def popular_genres():
+    #Unionize the songs
+    song_genres_count = {}
+    for genre_list in spotify_df['tagstokenized']:
+        for genre in genre_list:
+            old_count = song_genres_count.get(genre, 0)
+            song_genres_count[genre] = old_count+1
+    book_genres_count = {}
+    for genre_list in book_df['genretokenized']:
+        for genre in genre_list:
+            old_count = book_genres_count.get(genre, 0)
+            book_genres_count[genre] = old_count+1
+    sorted_song_genre_count = (sorted(song_genres_count.items(), key=lambda x: x[1], reverse= True))
+    sorted_book_genres_count = (sorted(book_genres_count.items(), key=lambda x: x[1], reverse= True))
+    for pair in sorted_book_genres_count[:20]:
+            print(pair)
+    for pair in sorted_song_genre_count[:20]:
+            print(pair)
+
+#Return the title + description of our book 
+def return_desc(query):
+    filtered_df = book_df[(book_df['title'] == query)]
+    #tokenize title
+    if filtered_df.empty:
+        print("Book does not exist in our database", query)
+        return ""
+    title_str = filtered_df['title'].iloc[0]
+    desc_str = filtered_df['desc'].iloc[0]
+    res = title_str + " " + desc_str
+    return res
+    
+#Tokenize the title and description of a book based on query title given
+def tokenize_book(query):
+    filtered_df = book_df[(book_df['title'] == query)]
+    #tokenize title
+    if filtered_df.empty:
+        print("Book does not exist in our database", query)
+        return []
+    title_str = filtered_df['title'].iloc[0]
+    title_tok = re.findall(r'\w+\'?\w*', title_str)
+    desc_str = filtered_df['desc'].iloc[0]
+    desc_tok = re.findall(r'\w+\'?\w*', desc_str)
+    res = title_tok + desc_tok
+    return desc_str
+
+#Tokenize the title and text of a song by row id given
+def tokenize_song_by_i(i, filtered_spotify):
+    title_str = filtered_spotify['title'].iloc[i]
+    title_tok = re.findall(r'\w+\'?\w*', title_str)
+    text_str = filtered_spotify['text'].iloc[i]
+    text_tok = re.findall(r'\w+\'?\w*', text_str)
+    res = title_tok + text_tok
+    return res
 
 #Builds Frequency Vector
 
