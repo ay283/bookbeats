@@ -4,11 +4,13 @@ import re
 from flask import Flask, render_template, request
 from flask_cors import CORS
 # from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
-#from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.preprocessing import normalize
 import pandas as pd
 import numpy as np
 from numpy import dot
 from numpy.linalg import norm
+from scipy.sparse.linalg import svds
 
 # ROOT_PATH for linking with all your files. 
 # Feel free to use a config.py or settings.py with a global export variable
@@ -45,6 +47,11 @@ book_to_song_genres = {'Nonfiction': ['folk', ' indie'], 'Fiction': [' indie', '
 'Science': ['electronic', 'rock'], 'Science Fiction': [' pop', ' indie rock', 'electronic'], 
 'Paranormal': [' classic rock', 'gothic metal', 'hard rock']}
 
+def closest_projects(project_index_in, project_repr_in, documents, k = 10):
+    sims = project_repr_in.dot(project_repr_in[project_index_in,:])
+    asort = np.argsort(-sims)[:k+1]
+    return [(documents[i][0], documents[i][1],sims[i]) for i in asort[1:]]
+
 #Get most popular song genres and most popular book genres in our datasets (helping to map genres)
 def popular_genres():
     #Unionize the songs
@@ -65,10 +72,46 @@ def popular_genres():
     for pair in sorted_song_genre_count[:20]:
             print(pair)
     
-#Filter songs by genre (if filtered is empty, just return all songs)
+#FOR TESTING PURPOSES: 
+# cosine similarity
+def closest_words(word_in, words_representation_in, k = 10):
+    if word_in not in word_to_index: return "Not in vocab."
+    sims = words_representation_in.dot(words_representation_in[word_to_index[word_in],:])
+    asort = np.argsort(-sims)[:k+1]
+    return [(index_to_word[i],sims[i]) for i in asort[1:]] 
+
+#Creating the TD Matrix of query and filtered df
+#Return the docs_compressed matrix and docs to perform cossine sim on later!
+def svd_calculation(query, filtered_df):
+    #Terms = Query terms OR terms = all terms of filtered_df 
+
+    #Tuple list representation of our filtered_df:
+    json_filtered = filtered_df.to_json(orient= "records")
+    
+        # Write JSON string to a file
+    with open("filtered_data.json", "w") as f:
+        f.write(json_filtered)
+
+    # Load JSON data from the file
+    with open("filtered_data.json") as f:
+        data = json.load(f)
+
+    # Extract text data from JSON records
+    documents = [(x['title'], x['artist'], x['text'])
+                for x in data
+                if len(x['text'].split()) > 50]
+    
+    #Ensure that query label will be the last entry in 'docs_compressed_normed' 
+    process = [x[2] for x in documents]
+    process.append(query)
+    vectorizer = CountVectorizer()
+    td_matrix = vectorizer.fit_transform(process)
+    docs_compressed, s, words_compressed= svds(td_matrix, k=100)
+    docs_compressed_normed = normalize(docs_compressed)
+    
+    return docs_compressed_normed, documents
 
 #Tokenize the title and description of a book based on query title given
-
 def tokenize_book(query):
     filtered_df = book_df[(book_df['title'] == query)]
     #tokenize title
@@ -122,41 +165,23 @@ def home():
 def episodes_search():
     #popular_genres()
     text = request.args.get("title")
-    #Tokenize title and desc of requested book 
-    tokenize_req_book = tokenize_book(text)
-    book_vector = build_vector(tokenize_req_book, tokenize_req_book)
-  #  print(book_vector)
-    #Initialize ranking dictionary of cossine similarities
-    cos_sim_ranking = {}
+   
     #Filter our spotify_df as needed:
     filtered_spotify = song_filter(text)
     song_count = filtered_spotify.shape[0]
     print(song_count, "size of filtered")
-    #Have to get the cossine sim between each song and book, put in map, and then sort the map
-    for i in range(song_count):
-        #Get tokenized title and text for song i
-        tokenized_song = tokenize_song_by_i(i, filtered_spotify)
-        #Convert our song to a vector to call cossim on 
-        song_vector = build_vector(tokenized_song, tokenize_req_book)
-       # print(song_vector)
-        cossim_measure = cossim(book_vector, song_vector)
-       # print(cossim_measure)
-        cos_sim_ranking[i] = cossim_measure
 
-    #Sort our cos_sim_ranking by cos_sim (greatest to least)
-    sorted_cos_sim = (sorted(cos_sim_ranking.items(), key=lambda x: x[1], reverse= True))
-    response_json = {}
-    response_json["top_ten_songs"] = []
-    for i in range(10):
-        #Get title
-        id = sorted_cos_sim[i][0]
-        song = filtered_spotify.iloc[id].title
-        #Add to response_json
-        response_json["top_ten_songs"].append(song)
-        print(song)
+    #Perform SVD on Filtered DF 
+    docs_compressed_norm, documents = svd_calculation(text,filtered_spotify)
+
+    #Provides top ten cossine sim 
+    top_ten_songs = closest_projects(song_count, docs_compressed_norm, documents) #Returns tuple list 
+    
+    #Response json
+
     return json.dumps(response_json), 200
 
-#Builds Frequency Vector 
+#Builds Frequency Vector
 
 def build_vector(doc, query_words):
     
