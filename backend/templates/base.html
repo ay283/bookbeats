@@ -74,14 +74,17 @@
 
         function filterText() {
             document.getElementById("answer-box").innerHTML = "";
-            const title = document.getElementById("filter-text-val").value;
-            fetch("/songs?title=" + title)
+            const titleInput = document.getElementById("filter-text-val").value;
+            fetch("/songs?title=" + titleInput)
                 .then(response => response.json())
                 .then(data => {
                     data.top_ten_songs.forEach(song => {
                         // Access title and text using appropriate keys
+                        const title = song.title;
+                        const artist = song.artist;
+                        console.log("Song:", title, "-", artist);
                         let tempDiv = document.createElement("div");
-                        tempDiv.innerHTML = answerBoxTemplate(song, song);
+                        tempDiv.innerHTML = answerBoxTemplate(title, artist);
                         document.getElementById("answer-box").appendChild(tempDiv);
                     });
                 })

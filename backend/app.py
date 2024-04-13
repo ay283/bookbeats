@@ -50,7 +50,7 @@ book_to_song_genres = {'Nonfiction': ['folk', ' indie'], 'Fiction': [' indie', '
 def closest_projects(project_index_in, project_repr_in, documents, k = 10):
     sims = project_repr_in.dot(project_repr_in[project_index_in,:])
     asort = np.argsort(-sims)[:k+1]
-    return [(documents[i][0], documents[i][1],sims[i]) for i in asort[1:]]
+    return [(documents[i][0], documents[i][1], documents[i][2],sims[i]) for i in asort[1:]]
     
 #FOR TESTING PURPOSES!: 
 # cosine similarity
@@ -77,13 +77,13 @@ def svd_calculation(query, filtered_df):
         data = json.load(f)
 
     # Extract text data from JSON records
-    documents = [(x['title'], x['artist'], x['text'])
+    documents = [(x['title'], x['artist'], x['spotify_id'], x['text'])
                 for x in data
                 if len(x['text'].split()) > 50]
     
     #Ensure that query label will be the last entry in 'docs_compressed_normed' 
-    process = [x[2] for x in documents]
-    process.append(query)
+    process = [x[3] for x in documents]
+    process.append(query) #ORder preserved!
     vectorizer = CountVectorizer()
     td_matrix = vectorizer.fit_transform(process)
     td_matrix=td_matrix.astype('float64')
@@ -133,17 +133,18 @@ def episodes_search():
     desc = return_desc(text)
     print(desc)
     docs_compressed_norm, documents = svd_calculation(desc,filtered_spotify)
-    print(docs_compressed_norm[song_count])
+    #print(docs_compressed_norm[song_count])
     #Provides top ten cossine sim 
     top_ten_songs = closest_projects(song_count, docs_compressed_norm, documents) #Returns tuple list 
     
     #Response json
     response_json = {}
     response_json["top_ten_songs"] = []  
-    for title, artist, sim in top_ten_songs:
-        mapping = {"title": title, "artist": artist}
-        response_json["top_ten_songs"].append(title)
-        print(title, sim)
+    for title, artist, id, sim in top_ten_songs:
+        mapping = {"title": title, "artist": artist, "id": id}
+        mapping2 = (title, artist, id)
+        response_json["top_ten_songs"].append(mapping2)
+        print(title, id, sim)
     return json.dumps(response_json), 200
 
 
