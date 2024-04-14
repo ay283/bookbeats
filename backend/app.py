@@ -11,6 +11,8 @@ import numpy as np
 from numpy import dot
 from numpy.linalg import norm
 from scipy.sparse.linalg import svds
+import requests
+from datetime import datetime, timedelta
 
 # ROOT_PATH for linking with all your files. 
 # Feel free to use a config.py or settings.py with a global export variable
@@ -147,6 +149,66 @@ def episodes_search():
         print(title, id, sim)
     return json.dumps(response_json), 200
 
+CLIENT_ID = '1124360dd48e4ace9c3be693c3f5f764'
+CLIENT_SECRET = '51412712cb8742958a0282f924de6e50'
+
+# Token information
+token_info = {
+    'access_token': None,
+    'expires_at': None
+}
+
+def get_token():
+    if not token_info['access_token'] or token_info['expires_at'] < datetime.now():
+        # Construct the request for token
+        auth_response = requests.post(
+            'https://accounts.spotify.com/api/token',
+            headers={
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            data={
+                'grant_type': 'client_credentials',
+                'client_id': CLIENT_ID,
+                'client_secret': CLIENT_SECRET
+            }
+        )
+        auth_data = auth_response.json()
+        token_info['access_token'] = auth_data['access_token']
+        # Set the expiration time
+        token_info['expires_at'] = datetime.now() + timedelta(seconds=auth_data['expires_in'])
+
+    return token_info['access_token']
+
+def get_track_info(track_id):
+    """ Fetch track information including album data """
+    token = get_token()  
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json'
+    }
+    url = f'https://api.spotify.com/v1/tracks/{track_id}'
+    response = requests.get(url, headers=headers)
+    track_data = response.json()
+    return track_data
+
+
+def get_album_cover(track_id):
+    track_data = get_track_info(track_id)
+    if 'album' in track_data and 'images' in track_data['album'] and track_data['album']['images']:
+        album_cover_url = track_data['album']['images'][0]['url']
+        return album_cover_url
+    else:
+        return "Album cover not found"
+
+
+@app.route('/album-cover/<track_id>')
+def album_cover(track_id):
+    try:
+        album_cover_url = get_album_cover(track_id)
+        return render_template('display_cover.html', cover_url=album_cover_url)
+    except Exception as e:
+        return str(e), 500
+
 
 #____________________EXTRA FUNCTIONS FROM P03 (MAY OR MAY NOT USE LATER)______________________________________________#
 
@@ -231,3 +293,4 @@ def cossim(a, b):
 
 if 'DB_NAME' not in os.environ:
     app.run(debug=True,host="0.0.0.0",port=8000)
+
