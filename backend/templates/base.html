@@ -9,10 +9,26 @@
     <style>
         .album-image img {
             max-width: 300px; 
-            max-height: 300px; 
+            max-height: 300px;
+            border-radius: 10px; 
             display: block; 
-            margin: 1 auto; 
+            margin: 0 auto; 
         }
+
+        .song-container {
+        text-align: center; /* Center-align the content */
+        margin: 20px auto; /* Add margin to center the container horizontally */
+        padding: 20px; /* Add padding for spacing */
+        border: 1px solid #ccc; /* Add a border for visual separation */
+        border-radius: 10px; /* Add border radius for rounded corners */
+        max-width: 600px; /* Limit the maximum width of the container */
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Add a box shadow for depth */
+        overflow: hidden; /* Hide any overflow content */
+    }
+    
+    .song-container .audio-player {
+        margin-top: 20px; /* Add some margin between song information and the audio player */
+    }
     </style>
 </head>
 
@@ -40,7 +56,7 @@
     <script>
         function answerBoxTemplate(title, artist, spotifyId) {
             return `<div class='song-container' data-spotify-id='${spotifyId}'>
-                <h3 class='song-title'>Title: ${title}</h3>
+                <h3 class='song-title'>${title}</h3>
                 <p class='song-artist'>Artist: ${artist}</p>
                 <div class='album-image'>
                     <!-- Image will be loaded dynamically -->
@@ -49,7 +65,7 @@
                 <br>
                 <div class='audio-player'>
                     <!-- Insert audio player here using Spotify ID -->
-                    <iframe src="https://open.spotify.com/embed/track/${spotifyId}" width="600" height="160" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+                    <iframe src="https://open.spotify.com/embed/track/${spotifyId}" width="500" height="160" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
                 </div>
                 <hr>
             </div>`;
