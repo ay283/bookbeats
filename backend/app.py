@@ -162,7 +162,7 @@ def episodes_search():
         mapping = {"title": title, "artist": artist, "spotify_id": id}
         mapping2 = (title, artist, id)
         response_json["top_ten_songs"].append(mapping)
-        print(title, id, sim)
+        print(title, artist, id, sim)
     return json.dumps(response_json), 200
 
 CLIENT_ID = '1124360dd48e4ace9c3be693c3f5f764'
