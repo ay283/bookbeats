@@ -29,11 +29,19 @@ spotify_file_path = os.path.join(current_directory, 'Spotify_condensed.json')
 
 with open(goodreads_file_path, 'r') as file:
     book_data = json.load(file)
-    book_df = pd.DataFrame(book_data)
+    # Convert JSON to DataFrame
+    book_df = pd.DataFrame.from_dict(book_data)
+    # book_df.reset_index(inplace=True)
+    # book_df.rename(columns={'index': 'id'}, inplace=True)
+    # book_df = pd.DataFrame(book_data)
 
 with open(spotify_file_path, 'r') as file:
     spotify_data = json.load(file)
-    spotify_df = pd.DataFrame(spotify_data)
+    # Convert JSON to DataFrame
+    spotify_df = pd.DataFrame.from_dict(spotify_data)
+    # spotify_df.reset_index(inplace=True)
+    # spotify_df.rename(columns={'index': 'id'}, inplace=True)
+    # spotify_df = pd.DataFrame(spotify_data)
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
@@ -63,9 +71,9 @@ def closest_words(word_in, words_representation_in, k = 10):
 #Performing SVD CALCULATION on filtered_spotify dataframe + our query!! 
 #Return the docs_compressed matrix and docs to perform cossine sim on later!
 def svd_calculation(query, filtered_df):
-    #Terms = Query terms OR terms = all terms of filtered_df 
-
-    #Tuple list representation of our filtered_df:
+    # #Terms = Query terms OR terms = all terms of filtered_df 
+    print("start td matrix") 
+    # #Tuple list representation of our filtered_df:
     json_filtered = filtered_df.to_json(orient= "records")
     
         # Write JSON string to a file
@@ -81,9 +89,16 @@ def svd_calculation(query, filtered_df):
                 for x in data
                 if len(x['text'].split()) > 50]
     
+    # documents = [(x['title'], x['artist'], x['spotify_id'], x['text'])
+    #              for _, x in filtered_df.iterrows()
+    #              if len(x['text'].split()) > 50]
+    
     #Ensure that query label will be the last entry in 'docs_compressed_normed' 
     process = [x[3] for x in documents]
     process.append(query) #ORder preserved!
+    print("process")
+    # for pair in process:
+    #     print(pair, "words")
     vectorizer = CountVectorizer()
     td_matrix = vectorizer.fit_transform(process)
     td_matrix=td_matrix.astype('float64')
@@ -133,6 +148,7 @@ def episodes_search():
     desc = return_desc(text)
     print(desc)
     docs_compressed_norm, documents = svd_calculation(desc,filtered_spotify)
+    #print("HERE")
     #print(docs_compressed_norm[song_count])
     #Provides top ten cossine sim 
     top_ten_songs = closest_projects(song_count, docs_compressed_norm, documents) #Returns tuple list 
@@ -141,9 +157,9 @@ def episodes_search():
     response_json = {}
     response_json["top_ten_songs"] = []  
     for title, artist, id, sim in top_ten_songs:
-        mapping = {"title": title, "artist": artist, "id": id}
+        mapping = {"title": title, "artist": artist, "spotify_id": id}
         mapping2 = (title, artist, id)
-        response_json["top_ten_songs"].append(mapping2)
+        response_json["top_ten_songs"].append(mapping)
         print(title, id, sim)
     return json.dumps(response_json), 200
 
