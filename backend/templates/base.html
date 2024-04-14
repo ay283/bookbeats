@@ -15,12 +15,11 @@
             <p>Create a playlist to listen to while you read</p>
             <div class="input-box" onclick="sendFocus()">
                 <label for="book-search">Find Your Book</label>
-                <!-- <img src="{{ url_for('static', filename='images/mag.png') }}" /> -->
                 <input name='book-search' placeholder="Search for a book title (eg: 'The Great Gatsby')"
                     id="filter-text-val">
             </div>
             <div class="search">
-                <button button onclick="filterText()">Give me a playlist</button>
+                <button onclick="filterText()">Give me a playlist</button>
             </div>
         </div>
         <div id="answer-box">
@@ -29,48 +28,24 @@
     </div>
 
     <script>
-        function answerBoxTemplate(title, text) {
-            return `<div class=''>
+        function answerBoxTemplate(title, artist, spotifyId) {
+            return `<div class='song-container'>
                 <h3 class='song-title'>${title}</h3>
-                <p class='song-text'>${text}</p>
-                <hr>
+                <p class='song-artist'>Artist: ${artist}</p>
+                <div class='audio-player'>
+                    <!-- Insert audio player here using Spotify ID -->
+                    <iframe src="https://open.spotify.com/embed/track/${spotifyId}" width="300" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+                </div>
+                <div class='album-image'>
+                    <!-- Insert album image here using Spotify ID -->
+                    <img src="https://i.scdn.co/image/${spotifyId}" alt="Album Image">
+                </div>
             </div>`;
         }
 
         function sendFocus() {
             document.getElementById('filter-text-val').focus()
         }
-
-        // function filterText(){
-        //     document.getElementById("answer-box").innerHTML = ""
-        //     console.log(document.getElementById("filter-text-val").value)
-        //     fetch("/songs?title=" + new URLSearchParams({ title: document.getElementById("filter-text-val").value }).toString())
-        //     .then((response) => response.json())
-        //     .then((data) => data.forEach(row => {
-
-        //         let tempDiv = document.createElement("div")
-        //         tempDiv.innerHTML = answerBoxTemplate(row.title,row.descr,row.imdb_rating)
-        //         document.getElementById("answer-box").appendChild(tempDiv)
-        //     }));
-
-        // }
-
-        //     function filterText() {
-        //     document.getElementById("answer-box").innerHTML = "";
-        //     const title = document.getElementById("filter-text-val").value;
-        //     fetch("/songs?title=" + title)
-        //         .then(response => response.json())
-        //         .then(data => {
-        //             data.top_ten_songs.forEach(song => {
-        //                 let tempDiv = document.createElement("div");
-        //                 tempDiv.innerHTML = answerBoxTemplate(song.title, song.text);
-        //                 document.getElementById("answer-box").appendChild(tempDiv);
-        //             });
-        //         })
-        //         .catch(error => {
-        //             console.error('Error:', error);
-        //         });
-        // }
 
         function filterText() {
             document.getElementById("answer-box").innerHTML = "";
@@ -79,12 +54,11 @@
                 .then(response => response.json())
                 .then(data => {
                     data.top_ten_songs.forEach(song => {
-                        // Access title and text using appropriate keys
                         const title = song.title;
                         const artist = song.artist;
-                        console.log("Song:", title, "-", artist);
+                        const spotifyId = song.spotify_id; // Assuming you have a key called "spotify_id" in your JSON response
                         let tempDiv = document.createElement("div");
-                        tempDiv.innerHTML = answerBoxTemplate(title, artist);
+                        tempDiv.innerHTML = answerBoxTemplate(title, artist, spotifyId);
                         document.getElementById("answer-box").appendChild(tempDiv);
                     });
                 })
@@ -92,6 +66,5 @@
                     console.error('Error:', error);
                 });
         }
-
     </script>
 </body>
