@@ -1,10 +1,20 @@
 <!doctype html>
+<head>
 <title>{% block title %}{% endblock %}BookBeats</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Kanit&family=Montserrat&family=Open+Sans:wght@500&display=swap"
     rel="stylesheet">
+    <style>
+        .album-image img {
+            max-width: 300px; 
+            max-height: 300px; 
+            display: block; 
+            margin: 1 auto; 
+        }
+    </style>
+</head>
 
 <body>
     <div class="full-body-container">
@@ -29,25 +39,26 @@
 
     <script>
         function answerBoxTemplate(title, artist, spotifyId) {
-            return `<div class='song-container'>
-                <h3 class='song-title'>${title}</h3>
+            return `<div class='song-container' data-spotify-id='${spotifyId}'>
+                <h3 class='song-title'>Title: ${title}</h3>
                 <p class='song-artist'>Artist: ${artist}</p>
+                <div class='album-image'>
+                    <!-- Image will be loaded dynamically -->
+                </div>
+                <br>
+                <br>
                 <div class='audio-player'>
                     <!-- Insert audio player here using Spotify ID -->
                     <iframe src="https://open.spotify.com/embed/track/${spotifyId}" width="600" height="160" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
                 </div>
-                <div class='album-image'>
-                    <!-- Insert album image here using Spotify ID -->
-                    <img src="/album-cover/${spotifyId}" alt="Album Image">
-                </div>
                 <hr>
             </div>`;
         }
-
+    
         function sendFocus() {
             document.getElementById('filter-text-val').focus()
         }
-
+    
         function filterText() {
             document.getElementById("answer-box").innerHTML = "";
             const titleInput = document.getElementById("filter-text-val").value;
@@ -61,11 +72,31 @@
                         let tempDiv = document.createElement("div");
                         tempDiv.innerHTML = answerBoxTemplate(title, artist, spotifyId);
                         document.getElementById("answer-box").appendChild(tempDiv);
+    
+                        // Fetch album image for each song
+                        fetchAlbumImage(spotifyId);
                     });
                 })
                 .catch(error => {
                     console.error('Error:', error);
                 });
         }
+    
+        function fetchAlbumImage(spotifyId) {
+            fetch(`/album-cover/${spotifyId}`)
+                .then(response => response.text())
+                .then(albumCoverUrl => {
+                    const songContainer = document.querySelector(`[data-spotify-id='${spotifyId}']`);
+                    if (songContainer) {
+                        const albumImageContainer = songContainer.querySelector('.album-image');
+                        albumImageContainer.innerHTML = `<img src="${albumCoverUrl}" alt="Album Image">`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching album image:', error);
+                });
+        }
     </script>
+
+    
 </body>
