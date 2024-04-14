@@ -207,9 +207,10 @@ def get_track_info(track_id):
     track_data = response.json()
     return track_data
 
-
-def get_album_cover(track_id):
-    track_data = get_track_info(track_id)
+@app.route("/album-cover/<spotify_id>")
+def get_album_cover(spotify_id):
+    print("Spotify id", spotify_id)
+    track_data = get_track_info(spotify_id)
     if 'album' in track_data and 'images' in track_data['album'] and track_data['album']['images']:
         album_cover_url = track_data['album']['images'][0]['url']
         return album_cover_url
