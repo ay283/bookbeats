@@ -217,14 +217,29 @@ def get_album_cover(track_id):
         return "Album cover not found"
 
 
-@app.route('/album-cover/<track_id>')
-def album_cover(track_id):
-    try:
-        album_cover_url = get_album_cover(track_id)
-        return render_template('display_cover.html', cover_url=album_cover_url)
-    except Exception as e:
-        return str(e), 500
-
+def get_song_details(track_id):
+    token = get_token()
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json'
+    }
+    url = f'https://api.spotify.com/v1/tracks/{track_id}'
+    
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        track_data = response.json()
+        song_details = {
+            'name': track_data['name'],
+            'artist': ', '.join(artist['name'] for artist in track_data['artists']), 
+            'album_name': track_data['album']['name'],
+            'preview_url': track_data['preview_url'], 
+            'external_urls': track_data['external_urls']['spotify']  
+        }
+        return song_details
+    else:
+        return f"Failed to retrieve song details: {response.status_code}"
+    
+print(get_song_details("09ZQ5TmUG8TSL56n0knqrj"))
 
 #____________________EXTRA FUNCTIONS FROM P03 (MAY OR MAY NOT USE LATER)______________________________________________#
 
