@@ -140,6 +140,10 @@ def home():
 def episodes_search():
     #popular_genres()
     text = request.args.get("title")
+    book = book_df[(book_df['title'] == text)]
+    if book.empty:
+        print("DNE")
+        return json.dumps({"error": "Book Not Found"}), 404
    
     #Filter our spotify_df as needed:
     filtered_spotify = song_filter(text)
