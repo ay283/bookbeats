@@ -60,7 +60,7 @@ book_to_song_genres = {'Nonfiction': ['folk', ' indie'], 'Fiction': [' indie', '
 def closest_projects(project_index_in, project_repr_in, documents, k = 10):
     sims = project_repr_in.dot(project_repr_in[project_index_in,:])
     asort = np.argsort(-sims)[:k+1]
-    return [(documents[i][0], documents[i][1], documents[i][2],sims[i]) for i in asort[1:]]
+    return [(documents[i][0], documents[i][1], documents[i][2],documents[i][4], sims[i]) for i in asort[1:]]
     
 #FOR TESTING PURPOSES!: 
 # cosine similarity
@@ -87,7 +87,7 @@ def svd_calculation(query, filtered_df):
         data = json.load(f)
 
     # Extract text data from JSON records
-    documents = [(x['title'], x['artist'], x['spotify_id'], x['text'])
+    documents = [(x['title'], x['artist'], x['spotify_id'],x['text'],x['tagstokenized'])
                 for x in data
                 if len(x['text'].split()) > 50]
     
@@ -140,6 +140,10 @@ def home():
 def episodes_search():
     #popular_genres()
     text = request.args.get("title")
+    book = book_df[(book_df['title'] == text)]
+    if book.empty:
+        print("DNE")
+        return json.dumps({"error": "Book Not Found"}), 404
    
     #Filter our spotify_df as needed:
     filtered_spotify = song_filter(text)
@@ -158,11 +162,10 @@ def episodes_search():
     #Response json
     response_json = {}
     response_json["top_ten_songs"] = []  
-    for title, artist, id, sim in top_ten_songs:
-        mapping = {"title": title, "artist": artist, "spotify_id": id}
-        mapping2 = (title, artist, id)
+    for title, artist, id, genres, sim in top_ten_songs:
+        mapping = {"title": title, "artist": artist, "spotify_id": id, "genres": genres}
         response_json["top_ten_songs"].append(mapping)
-        print(title, artist, id, sim)
+        print(title, artist, id, genres, sim)
     return json.dumps(response_json), 200
 
 CLIENT_ID = '1124360dd48e4ace9c3be693c3f5f764'

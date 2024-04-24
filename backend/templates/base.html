@@ -29,6 +29,14 @@
     .song-container .audio-player {
         margin-top: 20px; /* Add some margin between song information and the audio player */
     }
+
+    .song-genres {
+    font-size: 1em;
+    color: #666;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    }
+
     </style>
 </head>
 
@@ -54,22 +62,21 @@
     </div>
 
     <script>
-        function answerBoxTemplate(title, artist, spotifyId) {
-            return `<div class='song-container' data-spotify-id='${spotifyId}'>
-                <h3 class='song-title'>${title}</h3>
-                <p class='song-artist'>Artist: ${artist}</p>
-                <div class='album-image'>
-                    <!-- Image will be loaded dynamically -->
-                </div>
-                <br>
-                <br>
-                <div class='audio-player'>
-                    <!-- Insert audio player here using Spotify ID -->
-                    <iframe src="https://open.spotify.com/embed/track/${spotifyId}" width="500" height="160" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
-                </div>
-                <hr>
-            </div>`;
-        }
+        function answerBoxTemplate(title, artist, spotifyId, genres) {
+    return `<div class='song-container' data-spotify-id='${spotifyId}'>
+        <h3 class='song-title'>${title}</h3>
+        <p class='song-artist'>Artist: ${artist}</p>
+        <div class='album-image'>
+            <!-- Image will be loaded dynamically -->
+        </div>
+        <p class='song-genres'>Genres: ${genres.join(', ')}</p> <!-- Display genres -->
+        <div class='audio-player'>
+            <iframe src="https://open.spotify.com/embed/track/${spotifyId}" width="500" height="160" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+        </div>
+        <hr>
+    </div>`;
+}
+
     
         function sendFocus() {
             document.getElementById('filter-text-val').focus()
@@ -85,8 +92,9 @@
                         const title = song.title;
                         const artist = song.artist;
                         const spotifyId = song.spotify_id; // Assuming you have a key called "spotify_id" in your JSON response
+                        const genres = song.genres;
                         let tempDiv = document.createElement("div");
-                        tempDiv.innerHTML = answerBoxTemplate(title, artist, spotifyId);
+                        tempDiv.innerHTML = answerBoxTemplate(title, artist, spotifyId, genres);
                         document.getElementById("answer-box").appendChild(tempDiv);
     
                         // Fetch album image for each song
