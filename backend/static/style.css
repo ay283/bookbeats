@@ -219,4 +219,13 @@ body {
     border-bottom: 1px solid black;
     padding-left: 2px;
     padding-top: 2px;
+    cursor: pointer;
+}
+
+.suggestions ul li:hover {
+    background-color: #333; /* Darker shade for hover */
+}
+
+.suggestions ul li:active {
+    background-color: #444; /* Even darker for the active state */
 }

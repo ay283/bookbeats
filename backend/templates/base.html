@@ -47,25 +47,29 @@
             document.getElementById("error-message").style.display = "none";
         }
     });
+    function fetchBookTitles(query) {
+    fetch(`/book-titles?query=${query}`)
+        .then(response => response.json())
+        .then(data => {
+            const titleList = document.getElementById("title-suggestions");
+            titleList.innerHTML = "";  // Clear existing suggestions
+            const maxSuggestions = 10;  // Limit the number of suggestions displayed
 
-        function fetchBookTitles(query) {
-            fetch(`/book-titles?query=${query}`)
-                .then(response => response.json())
-                .then(data => {
-                    const titleList = document.getElementById("title-suggestions");
-                    titleList.innerHTML = "";
-                    // Display only a limited number of suggestions (e.g., 10)
-                    const maxSuggestions = 10;
-                    for (let i = 0; i < Math.min(data.length, maxSuggestions); i++) {
-                        const listItem = document.createElement("li");
-                        listItem.textContent = data[i];
-                        titleList.appendChild(listItem);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching book titles:', error);
+            for (let i = 0; i < Math.min(data.length, maxSuggestions); i++) {
+                const listItem = document.createElement("li");
+                listItem.textContent = data[i];
+                listItem.addEventListener('click', function() {
+                    document.getElementById("filter-text-val").value = this.textContent;  // Set the input field with the selected title
+                    filterText();  // Optionally trigger the search function immediately
+                    clearBookSuggestions();  // Clear suggestions after selection
                 });
-        }
+                titleList.appendChild(listItem);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching book titles:', error);
+        });
+}
 
         function clearBookSuggestions() {
             const titleList = document.getElementById("title-suggestions");
@@ -154,4 +158,23 @@
                 });
         }
     </script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Function to update input and search when clicking on a suggestion
+        function updateInputAndSearch(title) {
+            const inputField = document.getElementById("filter-text-val");
+            inputField.value = title; // Set input field value to the selected title
+            filterText(); // Trigger the search function
+        }
+
+        // Adding click event listeners to each suggestion
+        document.querySelector('.suggestions').addEventListener('click', function(event) {
+            if (event.target.tagName === 'LI') {
+                updateInputAndSearch(event.target.textContent);
+            }
+        });
+    });
+</script>
+
 </body>
