@@ -13,6 +13,7 @@ from numpy.linalg import norm
 from scipy.sparse.linalg import svds
 import requests
 from datetime import datetime, timedelta
+from flask import jsonify
 
 # ROOT_PATH for linking with all your files. 
 # Feel free to use a config.py or settings.py with a global export variable
@@ -131,9 +132,14 @@ def song_filter(query):
     #print(filtered_df.shape[0])
     return filtered_df
 
+# @app.route("/")
+# def home():
+#     return render_template('base.html',title="sample html")
 @app.route("/")
 def home():
-    return render_template('base.html',title="sample html")
+    # Pass all book titles to the frontend
+    all_titles = book_df['title'].tolist()
+    return render_template('base.html', title="Sample HTML", all_titles=jsonify(all_titles))
 
 #Route to return top ten similar songs to a book (based on cossine similarity)
 @app.route("/songs", methods = ['GET'])
@@ -219,6 +225,23 @@ def get_album_cover(spotify_id):
         return album_cover_url
     else:
         return "Album cover not found"
+    
+@app.route("/book-titles", methods=['GET'])
+def get_book_titles():
+    query = request.args.get('query').lower()  # Convert query to lowercase for case-insensitive matching
+    # Filter book titles based on the query
+    filtered_titles = [title for title in book_df['title'] if query in title.lower()]
+    return jsonify(filtered_titles)
+
+def fetch_book_title_suggestions(query):
+    # Filter the book titles based on the query
+    filtered_titles = [title for title in book_df['title'] if query.lower() in title.lower()]
+    # Sort the filtered titles alphabetically
+    sorted_titles = sorted(filtered_titles)
+    return sorted_titles
+
+
+
 
 
 def get_song_details(track_id):

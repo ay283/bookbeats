@@ -1,11 +1,10 @@
 <!doctype html>
 <head>
-<title>{% block title %}{% endblock %}BookBeats</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Kanit&family=Montserrat&family=Open+Sans:wght@500&display=swap"
-    rel="stylesheet">
+    <title>{% block title %}{% endblock %}BookBeats</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit&family=Montserrat&family=Open+Sans:wght@500&display=swap" rel="stylesheet">
     <style>
         .album-image img {
             max-width: 300px; 
@@ -16,27 +15,33 @@
         }
 
         .song-container {
-        text-align: center; /* Center-align the content */
-        margin: 20px auto; /* Add margin to center the container horizontally */
-        padding: 20px; /* Add padding for spacing */
-        border: 1px solid #ccc; /* Add a border for visual separation */
-        border-radius: 10px; /* Add border radius for rounded corners */
-        max-width: 600px; /* Limit the maximum width of the container */
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Add a box shadow for depth */
-        overflow: hidden; /* Hide any overflow content */
-    }
-    
-    .song-container .audio-player {
-        margin-top: 20px; /* Add some margin between song information and the audio player */
-    }
+            text-align: center;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            max-width: 600px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
 
-    .song-genres {
-    font-size: 1em;
-    color: #666;
-    margin-top: 5px;
-    margin-bottom: 10px;
-    }
+        .song-container .audio-player {
+            margin-top: 20px;
+        }
 
+        .song-genres {
+            font-size: 1em;
+            color: white;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 1.2em;
+            margin-top: 10px;
+            display: none;
+        }
     </style>
 </head>
 
@@ -49,63 +54,117 @@
             <p>Create a playlist to listen to while you read</p>
             <div class="input-box" onclick="sendFocus()">
                 <label for="book-search">Find Your Book</label>
-                <input name='book-search' placeholder="Search for a book title (eg: 'The Great Gatsby')"
-                    id="filter-text-val">
+                <input name='book-search' placeholder="Search for a book title (eg: 'The Great Gatsby')" id="filter-text-val">
             </div>
-            <div class="search">
-                <button onclick="filterText()">Give me a playlist</button>
-            </div>
-        </div>
-        <div id="answer-box">
+            <!-- Display book title suggestions -->
+            <ul id="title-suggestions"></ul>
+            <!-- Display error message if book title not found -->
+            <div id="error-message" class="error-message" style="display: none;">Book Title Not Found</div>
 
+            <div class="search">
+                <button onclick="filterText()">Give Me a Playlist</button>
+            </div>
         </div>
+        <div id="answer-box"></div>
     </div>
 
     <script>
-        function answerBoxTemplate(title, artist, spotifyId, genres) {
-    return `<div class='song-container' data-spotify-id='${spotifyId}'>
-        <h3 class='song-title'>${title}</h3>
-        <p class='song-artist'>Artist: ${artist}</p>
-        <div class='album-image'>
-            <!-- Image will be loaded dynamically -->
-        </div>
-        <p class='song-genres'>Genres: ${genres.join(', ')}</p> <!-- Display genres -->
-        <div class='audio-player'>
-            <iframe src="https://open.spotify.com/embed/track/${spotifyId}" width="500" height="160" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
-        </div>
-        <hr>
-    </div>`;
-}
-
-    
-        function sendFocus() {
-            document.getElementById('filter-text-val').focus()
+        // Add an input event listener to the book search input field
+        document.getElementById("filter-text-val").addEventListener("input", function() {
+        const inputText = this.value.trim();
+        if (inputText) {
+            fetchBookTitles(inputText);
+        } else {
+            // Clear the suggestions if the input is empty
+            clearBookSuggestions();
+            // Hide the error message if the input box is empty
+            document.getElementById("error-message").style.display = "none";
         }
-    
-        function filterText() {
-            document.getElementById("answer-box").innerHTML = "";
-            const titleInput = document.getElementById("filter-text-val").value;
-            fetch("/songs?title=" + titleInput)
+    });
+
+        function fetchBookTitles(query) {
+            fetch(`/book-titles?query=${query}`)
                 .then(response => response.json())
                 .then(data => {
-                    data.top_ten_songs.forEach(song => {
-                        const title = song.title;
-                        const artist = song.artist;
-                        const spotifyId = song.spotify_id; // Assuming you have a key called "spotify_id" in your JSON response
-                        const genres = song.genres;
-                        let tempDiv = document.createElement("div");
-                        tempDiv.innerHTML = answerBoxTemplate(title, artist, spotifyId, genres);
-                        document.getElementById("answer-box").appendChild(tempDiv);
-    
-                        // Fetch album image for each song
-                        fetchAlbumImage(spotifyId);
-                    });
+                    const titleList = document.getElementById("title-suggestions");
+                    titleList.innerHTML = "";
+                    // Display only a limited number of suggestions (e.g., 10)
+                    const maxSuggestions = 10;
+                    for (let i = 0; i < Math.min(data.length, maxSuggestions); i++) {
+                        const listItem = document.createElement("li");
+                        listItem.textContent = data[i];
+                        titleList.appendChild(listItem);
+                    }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
+                    console.error('Error fetching book titles:', error);
                 });
         }
-    
+
+        function clearBookSuggestions() {
+            const titleList = document.getElementById("title-suggestions");
+            titleList.innerHTML = "";
+        }
+
+        function answerBoxTemplate(title, artist, spotifyId, genres) {
+            return `<div class='song-container' data-spotify-id='${spotifyId}'>
+                <h3 class='song-title'>${title}</h3>
+                <p class='song-artist'>Artist: ${artist}</p>
+                <div class='album-image'>
+                    <!-- Image will be loaded dynamically -->
+                </div>
+                <p class='song-genres'>Genres: ${genres.join(', ')}</p> <!-- Display genres -->
+                <div class='audio-player'>
+                    <iframe src="https://open.spotify.com/embed/track/${spotifyId}" width="500" height="160" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+                </div>
+                <hr>
+            </div>`;
+        }
+
+        function filterText() {
+    document.getElementById("answer-box").innerHTML = "";
+    const titleInput = document.getElementById("filter-text-val").value;
+    // Clear book suggestions
+    clearBookSuggestions();
+    fetch("/songs?title=" + titleInput)
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else if (response.status === 404) {
+                // Book title not found, display error message
+                document.getElementById("error-message").style.display = "block";
+                throw new Error("Book title not found");
+            } else {
+                throw new Error("Server error");
+            }
+        })
+        .then(data => {
+            // Hide the error message if it was previously displayed
+            document.getElementById("error-message").style.display = "none";
+
+            // Process the response if the book title was found
+            data.top_ten_songs.forEach(song => {
+                const title = song.title;
+                const artist = song.artist;
+                const spotifyId = song.spotify_id;
+                const genres = song.genres;
+                let tempDiv = document.createElement("div");
+                tempDiv.innerHTML = answerBoxTemplate(title, artist, spotifyId, genres);
+                document.getElementById("answer-box").appendChild(tempDiv);
+
+                // Fetch album image for each song
+                fetchAlbumImage(spotifyId);
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+}
+
+        function sendFocus() {
+            document.getElementById('filter-text-val').focus();
+        }
+
         function fetchAlbumImage(spotifyId) {
             fetch(`/album-cover/${spotifyId}`)
                 .then(response => response.text())
@@ -121,6 +180,4 @@
                 });
         }
     </script>
-
-    
 </body>
