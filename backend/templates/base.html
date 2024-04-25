@@ -1,48 +1,12 @@
 <!doctype html>
 <head>
     <title>{% block title %}{% endblock %}BookBeats</title>
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kanit&family=Montserrat&family=Open+Sans:wght@500&display=swap" rel="stylesheet">
-    <style>
-        .album-image img {
-            max-width: 300px; 
-            max-height: 300px;
-            border-radius: 10px; 
-            display: block; 
-            margin: 0 auto; 
-        }
 
-        .song-container {
-            text-align: center;
-            margin: 20px auto;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            max-width: 600px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        .song-container .audio-player {
-            margin-top: 20px;
-        }
-
-        .song-genres {
-            font-size: 1em;
-            color: white;
-            margin-top: 5px;
-            margin-bottom: 10px;
-        }
-
-        .error-message {
-            color: red;
-            font-size: 1.2em;
-            margin-top: 10px;
-            display: none;
-        }
-    </style>
 </head>
 
 <body>
@@ -57,13 +21,15 @@
                 <input name='book-search' placeholder="Search for a book title (eg: 'The Great Gatsby')" id="filter-text-val">
             </div>
             <!-- Display book title suggestions -->
-            <ul id="title-suggestions"></ul>
+            <div class="suggestions">
+                <ul id="title-suggestions"></ul>
+            </div>
+            <!-- Search button -->
+            <div class="search">
+                <button onclick="filterText()">Give Me a Playlist!</button>
+            </div>
             <!-- Display error message if book title not found -->
             <div id="error-message" class="error-message" style="display: none;">Book Title Not Found</div>
-
-            <div class="search">
-                <button onclick="filterText()">Give Me a Playlist</button>
-            </div>
         </div>
         <div id="answer-box"></div>
     </div>
@@ -108,16 +74,23 @@
 
         function answerBoxTemplate(title, artist, spotifyId, genres) {
             return `<div class='song-container' data-spotify-id='${spotifyId}'>
-                <h3 class='song-title'>${title}</h3>
-                <p class='song-artist'>Artist: ${artist}</p>
-                <div class='album-image'>
-                    <!-- Image will be loaded dynamically -->
-                </div>
-                <p class='song-genres'>Genres: ${genres.join(', ')}</p> <!-- Display genres -->
+                <div class='song-details'>
+                    <div class='details-gen'>
+                        <h3 class='song-title'>${title}</h3>
+                        <p class='song-artist'>${artist}</p>
+                    </div
+                    <div class='song-genres'>
+                        <!-- Display genres -->
+                        <p class='song-genres'>Genres: ${genres.join(', ')}</p>
+                    </div>
+                
                 <div class='audio-player'>
-                    <iframe src="https://open.spotify.com/embed/track/${spotifyId}" width="500" height="160" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+                    <iframe src="https://open.spotify.com/embed/track/${spotifyId}" width="560" height="160px" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
                 </div>
-                <hr>
+                
+                <!-- Returns album image citation -->
+                <div class='album-image'></div>
+                </div>     
             </div>`;
         }
 
@@ -172,7 +145,8 @@
                     const songContainer = document.querySelector(`[data-spotify-id='${spotifyId}']`);
                     if (songContainer) {
                         const albumImageContainer = songContainer.querySelector('.album-image');
-                        albumImageContainer.innerHTML = `<img src="${albumCoverUrl}" alt="Album Image">`;
+                        albumImageContainer.innerHTML = `<a href="${albumCoverUrl}">Image Source</a>`;
+                        // albumImageContainer.innerHTML = `<img src="${albumCoverUrl}" alt="Album Image">`;
                     }
                 })
                 .catch(error => {

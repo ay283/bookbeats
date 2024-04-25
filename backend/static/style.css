@@ -70,6 +70,7 @@ body {
     align-items: center;
     margin-top: 10px;
     padding:12px;
+    padding-bottom: 0px;
     width: 600px;
     flex-direction: column;
     text-align: left;
@@ -119,6 +120,7 @@ body {
     align-items:end;
     margin-right: 0;
     margin-left: auto;
+    margin-top: 2em;
 }
 .search button {
     background-color: #322D40;
@@ -127,4 +129,94 @@ body {
     padding: 0.5em;
     padding-left: 1em;
     padding-right: 1em;
+}
+
+
+.album-image img {
+    max-width: 300px; 
+    max-height: 300px;
+    border-radius: 10px; 
+    display: block; 
+    margin: 0 auto; 
+}
+
+.song-container {
+    text-align: left;
+    margin: 20px auto;
+    padding: 20px;
+    padding-top: 0px;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    max-width: 600px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.song-container .audio-player {
+    margin-top: 10px;
+}
+
+.song-container h3 {
+    margin-top: 0px;
+    margin-bottom: 2pt;
+    font-size: 14pt;
+}
+
+.song-container a {
+    font-size: 10pt;
+}
+
+.song-details {
+    display: flex;
+    flex-direction: row;
+}
+
+.song-artist {
+    margin-top: 4pt;
+    margin-bottom: 4pt;
+}
+
+.details-gen {
+    flex: 2;
+}
+
+.song-genres {
+    flex: 1;
+}
+
+.song-genres {
+    font-size: 1em;
+    color: white;
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+
+.error-message {
+    color: red;
+    font-size: 1.2em;
+    margin-top: 10px;
+    display: none;
+}
+
+.suggestions {
+    width: 650px;
+}
+
+.suggestions ul {
+    list-style-type: none;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-left: 26px;
+    margin-right: 20px;
+    padding-left: 0px;
+    background-color: #262529;
+}
+
+.suggestions ul li {
+    margin-bottom: 8px;
+    background-color: #262529;
+    margin-left: 0px;
+    border-bottom: 1px solid black;
+    padding-left: 2px;
+    padding-top: 2px;
 }
