@@ -47,6 +47,30 @@ book_to_song_genres = {'Nonfiction': ['folk', ' indie'], 'Fiction': [' indie', '
 'Science': ['electronic', 'rock'], 'Science Fiction': [' pop', ' indie rock', 'electronic'], 
 'Paranormal': [' classic rock', 'gothic metal', 'hard rock']}
 
+#Get most popular song genres and most popular book genres in our datasets (helping to construct mapping of genres)
+def popular_genres():
+     #Initialize dictionary of song tags to frequency 
+     song_genres_count = {}
+     for genre_list in spotify_df['tagstokenized']:
+         for genre in genre_list:
+             old_count = song_genres_count.get(genre, 0)
+             song_genres_count[genre] = old_count+1
+    #Initialize dictionary of book genres to frequency 
+     book_genres_count = {}
+     for genre_list in book_df['genretokenized']:
+         for genre in genre_list:
+             old_count = book_genres_count.get(genre, 0)
+             book_genres_count[genre] = old_count+1
+    #Sort unique song tags and unique book genres by highest to lowest frequency
+     sorted_song_genre_count = (sorted(song_genres_count.items(), key=lambda x: x[1], reverse= True))
+     sorted_book_genres_count = (sorted(book_genres_count.items(), key=lambda x: x[1], reverse= True))
+     #Print out the top 20 most popular book genres
+     for pair in sorted_book_genres_count[:20]:
+             print(pair)
+    #Print out the top 20 most popular song tags
+     for pair in sorted_song_genre_count[:20]:
+             print(pair)
+
 # Function to find the closest related projects using cosine similarity
 def closest_projects(project_index_in, project_repr_in, documents, k = 10):
     sims = project_repr_in.dot(project_repr_in[project_index_in,:])
